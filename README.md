@@ -1,7 +1,7 @@
 # PHYS449 Machine Learning in Physics
 
-- name: *your name*
-- student ID: *your student ID*
+- name: *Yiqing Zhao*
+- student ID: *20776816*
 
 ## Instructions
 
