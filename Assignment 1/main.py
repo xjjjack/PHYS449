@@ -6,39 +6,45 @@ import numpy as np
 
 
 def main():
-
     # load data from .in file
     input_data = np.loadtxt(sys.argv[1])
-    print(input_data)
+
     # split into 2 matrices, one for x, the other for y (using t by convention of lecture notes)
     phi, t = np.hsplit(input_data, [-1])
+
+    # load json file for parameters
     with open(sys.argv[2]) as f:
         params = json.load(f)
 
     # Add one column of 1 to the front of Phi for x_0 term
     phi = np.insert(phi, 0, np.ones(np.shape(phi)[0]), 1)
 
-    print(t)
-    print(phi)
-    print(np.shape(phi))
-
     # Analytic solution
     w_analytics = np.matmul(np.matmul(np.linalg.inv(np.matmul(phi.T, phi)), phi.T), t)
-    print(w_analytics)
 
     # Gradient descent
-    # Initial guess of w
+    # Initial guess of w as 1's
     w_gds = np.ones(np.shape(phi)[1])
-    print(np.shape(np.sum(w_gds*phi, 1)))
+    for k in range(params["num iter"]):
+        # create an array to store summation value
+        s = np.ones(np.shape(phi)[1])
 
-    for i in range(params["num iter"]):
-        for j in range(np.shape(phi)[1]):
-            s = 0.0
-            for k in range(np.shape(phi)[0]):
-                s += - (t[k] - np.dot(w_gds, phi[k])) * phi[k][j]
-            w_gds[j] = w_gds[j] - params["learning rate"] * s
+        # loop through w_gds, calculate summation and store into s
+        for i in range(np.shape(phi)[1]):
+            for j in range(np.shape(phi)[0]):
+                s[i] += - (t[j] - np.dot(w_gds, phi[j])) * phi[j][i]
 
-    print(w_gds)
+        # update w_gds
+        w_gds = w_gds - params["learning rate"] * s
+
+    # write to file
+    f = open(os.path.splitext(sys.argv[1])[0] + ".out", "w+")
+    np.savetxt(f, w_analytics, fmt="%.4f", delimiter="\n")
+    f.write("\n")
+    np.savetxt(f, w_gds[:-1], fmt="%.4f", delimiter="\n")
+    # write last term separately to avoid newline at the end
+    f.write(f"{w_gds[-1]:.4f}")
+    f.close()
 
 
 if __name__ == '__main__':
