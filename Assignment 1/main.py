@@ -41,9 +41,12 @@ def main():
     f = open(os.path.splitext(sys.argv[1])[0] + ".out", "w+")
     np.savetxt(f, w_analytics, fmt="%.4f", delimiter="\n")
     f.write("\n")
-    np.savetxt(f, w_gds[:-1], fmt="%.4f", delimiter="\n")
-    # write last term separately to avoid newline at the end
-    f.write(f"{w_gds[-1]:.4f}")
+    if np.isnan(w_gds).any():
+        f.write("Divergent solution. Try to use a lower learning rate.")
+    else:
+        np.savetxt(f, w_gds[:-1], fmt="%.4f", delimiter="\n")
+        # write last term separately to avoid newline at the end
+        f.write(f"{w_gds[-1]:.4f}")
     f.close()
 
 
