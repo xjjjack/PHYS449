@@ -19,8 +19,14 @@ def main():
     # Add one column of 1 to the front of Phi for x_0 term
     phi = np.insert(phi, 0, np.ones(np.shape(phi)[0]), 1)
 
-    # Analytic solution
-    w_analytics = np.matmul(np.matmul(np.linalg.inv(np.matmul(phi.T, phi)), phi.T), t)
+    # write to file
+    f = open(os.path.splitext(sys.argv[1])[0] + ".out", "w+")
+    try:
+        # Analytic solution
+        w_analytics = np.matmul(np.matmul(np.linalg.inv(np.matmul(phi.T, phi)), phi.T), t)
+        np.savetxt(f, w_analytics, fmt="%.4f", delimiter="\n")
+    except np.LinAlgError:
+        f.write("Matrix inversion error. Analytic solution is not available.")
 
     # Gradient descent
     # Initial guess of w as 1's
@@ -37,9 +43,6 @@ def main():
         # update w_gds
         w_gds = w_gds - params["learning rate"] * s
 
-    # write to file
-    f = open(os.path.splitext(sys.argv[1])[0] + ".out", "w+")
-    np.savetxt(f, w_analytics, fmt="%.4f", delimiter="\n")
     f.write("\n")
     if np.isnan(w_gds).any():
         f.write("Divergent solution. Try to use a lower learning rate.")
