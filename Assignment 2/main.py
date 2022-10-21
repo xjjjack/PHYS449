@@ -1,6 +1,7 @@
 import json, argparse, torch, sys
 import torch.optim as optim
 import matplotlib.pyplot as plt
+from pathlib import Path
 import seaborn as sns
 sns.set_style("darkgrid")
 sys.path.append('src')
@@ -18,7 +19,7 @@ def plot_results(obj_vals, cross_vals, train_acc, test_acc):
     plt.plot(range(num_epochs), train_acc, label="Training Accuracy", color="red")
     plt.plot(range(num_epochs), test_acc, label="Test Accuracy", color="black")
     plt.legend()
-    plt.savefig(args.res_path + '/fig.pdf')
+    plt.savefig(Path(args.res_path) / 'fig.pdf')
     # plt.close()
 
 
