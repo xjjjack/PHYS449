@@ -5,6 +5,12 @@ import torch.nn.functional as func
 
 class Net(nn.Module):
 
+    """
+    This nn contains 3fc layers and 2 relu functions.
+    Network output dimension is set to 5 to do the multiclass classification task.
+    Softmax operation is done in the calculation of Crossentropy so there is no softmax layer in the current network.
+    """
+
     def __init__(self, input_channel, num_class):
         super(Net, self).__init__()
         self.num_class = num_class
