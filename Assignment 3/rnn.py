@@ -117,11 +117,12 @@ class SimpleRnn:
                 # out = 0
                 # for index, x in enumerate(reversed(d)):
                 #     out += x * pow(2, index)
-                train_loss.append(loss/train_size)
+
                 print(f"Train loss: {loss/train_size}")
-                test_loss.append(self.test(testset, test_size))
                 print(f"Test loss: {self.test(testset, test_size)}")
                 print("------------")
+            train_loss.append(loss/train_size)
+            test_loss.append(self.test(testset, test_size))
             loss = 0
         return train_loss, test_loss
 

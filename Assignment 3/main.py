@@ -57,10 +57,11 @@ if __name__ == '__main__':
 
     train_loss_swap, test_loss_swap = net2.train(trainset_swap, testset_swap, args.train_size, args.test_size, epoch=param['optim']['epoch'], interval=param['optim']['report_interval'])
     # Plot saved in results folder
-    plt.plot(range(0, param['optim']['epoch'], param['optim']['report_interval'])[1:], train_loss, label="Training loss", color="blue")
-    plt.plot(range(0, param['optim']['epoch'], param['optim']['report_interval'])[1:], test_loss, label="Test loss", color="green")
-    plt.plot(range(0, param['optim']['epoch'], param['optim']['report_interval'])[1:], train_loss_swap, label="Training loss after swap", color="blue")
-    plt.plot(range(0, param['optim']['epoch'], param['optim']['report_interval'])[1:], test_loss_swap, label="Test loss after swap", color="green")
+    n = len(train_loss)
+    plt.plot(range(n), train_loss, label="Training loss", color="blue")
+    plt.plot(range(n), test_loss, label="Test loss", color="green")
+    plt.plot(range(n), train_loss_swap, label="Training loss after swap", color="blue")
+    plt.plot(range(n), test_loss_swap, label="Test loss after swap", color="green")
     plt.legend()
     plt.savefig(Path(args.res_path) / 'fig.pdf')
 
