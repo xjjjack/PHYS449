@@ -25,3 +25,7 @@ All arguments are optional. Values in above are already set as default value.
 Output figure is modified to show both loss and accuracy.
 
 Tuned json file is provided.
+
+Inspired by the RNN addition by Trask: http://iamtrask.github.io/2015/11/15/anyone-can-code-lstm/
+
+Two NN trainings are performed, one for (A,B), the other one for (B,A).

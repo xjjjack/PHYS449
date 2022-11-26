@@ -111,18 +111,19 @@ class SimpleRnn:
 
             # print out results
             if j % interval == 0 and j > 0:
-                print("Error: %s" % str(overallError))
-                print("Pred: %s" % str(d))
-                print("True: %s" % str(c))
-                out = 0
-                for index, x in enumerate(reversed(d)):
-                    out += x * pow(2, index)
-                train_loss.append(loss/train_size)
+                # print("Error: %s" % str(overallError))
+                # print("Pred: %s" % str(d))
+                # print("True: %s" % str(c))
+                # out = 0
+                # for index, x in enumerate(reversed(d)):
+                #     out += x * pow(2, index)
+
                 print(f"Train loss: {loss/train_size}")
-                loss = 0
-                test_loss.append(self.test(testset, test_size))
                 print(f"Test loss: {self.test(testset, test_size)}")
                 print("------------")
+            train_loss.append(loss/train_size)
+            test_loss.append(self.test(testset, test_size))
+            loss = 0
         return train_loss, test_loss
 
     def test(self, testset, test_size):

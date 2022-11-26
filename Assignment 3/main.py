@@ -2,7 +2,7 @@ import argparse, json
 import numpy as np
 from rnn import SimpleRnn
 from pathlib import Path
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 
 if __name__ == '__main__':
@@ -56,14 +56,12 @@ if __name__ == '__main__':
     testset_swap = {'b': random_array_test_B.tolist(), 'a': random_array_test_A.tolist(), 'c': random_array_test_C}
 
     train_loss_swap, test_loss_swap = net2.train(trainset_swap, testset_swap, args.train_size, args.test_size, epoch=param['optim']['epoch'], interval=param['optim']['report_interval'])
-
-    num_epochs = len(train_loss)
-
     # Plot saved in results folder
-    plt.plot(range(num_epochs), train_loss, label="Training loss", color="blue")
-    plt.plot(range(num_epochs), test_loss, label="Test loss", color="green")
-    plt.plot(range(num_epochs), train_loss_swap, label="Training loss after swap", color="blue")
-    plt.plot(range(num_epochs), test_loss_swap, label="Test loss after swap", color="green")
+    n = len(train_loss)
+    plt.plot(range(n), train_loss, label="Training loss", color="blue")
+    plt.plot(range(n), test_loss, label="Test loss", color="green")
+    plt.plot(range(n), train_loss_swap, label="Training loss after swap", color="blue")
+    plt.plot(range(n), test_loss_swap, label="Test loss after swap", color="green")
     plt.legend()
     plt.savefig(Path(args.res_path) / 'fig.pdf')
 
