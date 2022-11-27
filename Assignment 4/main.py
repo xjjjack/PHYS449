@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import itertools
 from pathlib import Path
 
+
 def loader(f):
     result = []
     with open(f, "r") as file:
@@ -15,6 +16,7 @@ def loader(f):
 
 def compute_expectation(a, j):
     return -np.sum(a * np.roll(a, -1) * j)
+
 
 def compute_set_expectation(m):
     result = []
