@@ -1,3 +1,5 @@
+import json
+
 import matplotlib.pyplot as plt # plotting library
 import numpy as np # this module is useful to work with numerical arrays
 import pandas as pd
@@ -9,31 +11,36 @@ from torch.utils.data import DataLoader,random_split
 from torch import nn
 import torch.nn.functional as F
 import torch.optim as optim
+from sklearn.preprocessing import MinMaxScaler
+from torch.utils.data import Dataset, DataLoader, TensorDataset
+import argparse
 
-data_dir = 'dataset'
 
-train_dataset = torchvision.datasets.MNIST(data_dir, train=True, download=True)
-test_dataset  = torchvision.datasets.MNIST(data_dir, train=False, download=True)
+class Data:
+    def __init__(self, path, batch_size, n_training_data, n_test_data):
 
-train_transform = transforms.Compose([
-transforms.ToTensor(),
-])
+        dataset = pd.read_csv(path, delimiter=' ')
+        dataset = dataset.astype('float32')
 
-test_transform = transforms.Compose([
-transforms.ToTensor(),
-])
+        scaler = MinMaxScaler()
+        norm_data = scaler.fit_transform(dataset)
+        np.random.shuffle(norm_data)
 
-train_dataset.transform = train_transform
-test_dataset.transform = test_transform
+        x_train = torch.from_numpy(norm_data[:n_training_data, :-1])
+        y_train = torch.from_numpy(norm_data[:n_training_data, -1])
+        y_train = y_train.to(torch.int64)
 
-m=len(train_dataset)
+        x_test = torch.from_numpy(norm_data[n_training_data:, :-1])
+        y_test = torch.from_numpy(norm_data[n_training_data:, -1])
+        y_test = y_test.to(torch.int64)
 
-train_data, val_data = random_split(train_dataset, [int(m-m*0.2), int(m*0.2)])
-batch_size=256
+        train_set = TensorDataset(x_train, y_train)
+        test_set = TensorDataset(x_test, y_test)
 
-train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size)
-valid_loader = torch.utils.data.DataLoader(val_data, batch_size=batch_size)
-test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size,shuffle=True)
+        train_loader = DataLoader(dataset=train_set, batch_size=batch_size, shuffle=True, drop_last=False)
+        test_loader = DataLoader(dataset=test_set, batch_size=batch_size, shuffle=True, drop_last=False)
+        self.train_set = train_loader
+        self.test_set = test_loader
 
 class VariationalEncoder(nn.Module):
     def __init__(self, latent_dims):
@@ -58,7 +65,7 @@ class VariationalEncoder(nn.Module):
         x = F.relu(self.conv3(x))
         x = torch.flatten(x, start_dim=1)
         x = F.relu(self.linear1(x))
-        mu =  self.linear2(x)
+        mu = self.linear2(x)
         sigma = torch.exp(self.linear3(x))
         z = mu + sigma*self.N.sample(mu.shape)
         self.kl = (sigma**2 + mu**2 - torch.log(sigma) - 1/2).sum()
@@ -178,40 +185,55 @@ def show_image(img):
 
 
 if __name__ == '__main__':
-    torch.manual_seed(0)
+    # Command line arguments
+    parser = argparse.ArgumentParser(description='ML with PyTorch')
+    parser.add_argument('--param', help='parameter file name')
+    parser.add_argument('--res-path', help='path of results')
+    args = parser.parse_args()
 
-    d = 4
+    # Hyperparameters from json file
+    with open(args.param) as paramfile:
+        param = json.load(paramfile)
 
-    vae = VariationalAutoencoder(latent_dims=d)
+    data = Data(param['path'], param['batch_size'], int(param['n_training_data']), int(param['n_test_data']))
 
-    lr = 1e-3
+    train_loader = data.train_set
+    test_loader = data.test_set
 
-    optim = torch.optim.Adam(vae.parameters(), lr=lr, weight_decay=1e-5)
+    print(train_loader[0])
 
-    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    print(f'Selected device: {device}')
-
-    vae.to(device)
-
-    num_epochs = 50
-
-    for epoch in range(num_epochs):
-        train_loss = train_epoch(vae, device, train_loader, optim)
-        val_loss = test_epoch(vae, device, valid_loader)
-        print('\n EPOCH {}/{} \t train loss {:.3f} \t val loss {:.3f}'.format(epoch + 1, num_epochs, train_loss,
-                                                                              val_loss))
-
-    vae.eval()
-
-    with torch.no_grad():
-
-        # sample latent vectors from the normal distribution
-        latent = torch.randn(128, d, device=device)
-
-        # reconstruct images from the latent vectors
-        img_recon = vae.decoder(latent)
-        img_recon = img_recon.cpu()
-
-        fig, ax = plt.subplots(figsize=(20, 8.5))
-        show_image(torchvision.utils.make_grid(img_recon.data[:100], 10, 5))
-        plt.show()
+    # d = 4
+    #
+    # vae = VariationalAutoencoder(latent_dims=d)
+    #
+    # lr = 1e-3
+    #
+    # optim = torch.optim.Adam(vae.parameters(), lr=lr, weight_decay=1e-5)
+    #
+    # device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    # print(f'Selected device: {device}')
+    #
+    # vae.to(device)
+    #
+    # num_epochs = 50
+    #
+    # for epoch in range(num_epochs):
+    #     train_loss = train_epoch(vae, device, train_loader, optim)
+    #     val_loss = test_epoch(vae, device, valid_loader)
+    #     print('\n EPOCH {}/{} \t train loss {:.3f} \t val loss {:.3f}'.format(epoch + 1, num_epochs, train_loss,
+    #                                                                           val_loss))
+    #
+    # vae.eval()
+    #
+    # with torch.no_grad():
+    #
+    #     # sample latent vectors from the normal distribution
+    #     latent = torch.randn(128, d, device=device)
+    #
+    #     # reconstruct images from the latent vectors
+    #     img_recon = vae.decoder(latent)
+    #     img_recon = img_recon.cpu()
+    #
+    #     fig, ax = plt.subplots(figsize=(20, 8.5))
+    #     show_image(torchvision.utils.make_grid(img_recon.data[:100], 10, 5))
+    #     plt.show()
