@@ -3,14 +3,33 @@
 ## Dependencies
 
 - json
+- argparse
+- matplotlib
 - numpy
+- torch
+- pathlib
 
 ## Running `main.py`
 
 To run `main.py`, use
 
 ```sh
+python main.py -o result_dir -n 100 --param inputs\param.json
+```
+
+## Note
+All arguments are optional. Values in above are already set as default value. So it's equivalent to:
+
+```sh
 python main.py
+```
+
+It will also output a pdf file including the loss figure in the output dir
+
+To enable verbose mode, it can be run as
+
+```sh
+python main.py --verbose
 ```
 
 Inspired by https://medium.com/dataseries/variational-autoencoder-with-pytorch-2d359cbf027b

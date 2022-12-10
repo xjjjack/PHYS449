@@ -1,21 +1,13 @@
 import json
-
-import matplotlib.pyplot as plt  # plotting library
-import numpy as np  # this module is useful to work with numerical arrays
-import pandas as pd
-import random
+import argparse
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
-import torchvision
-from torchvision import transforms
-from torch.utils.data import DataLoader, random_split
 from torch import nn
 import torch.nn.functional as F
-import torch.optim as optim
-from sklearn.preprocessing import MinMaxScaler
-from torch.utils.data import Dataset, DataLoader, TensorDataset
-import argparse
+from torch.utils.data import DataLoader, TensorDataset
 from pathlib import Path
-from PIL import Image
+
 
 class Data:
     def __init__(self, path, batch_size, n_training_data, n_test_data):
@@ -111,21 +103,14 @@ class VariationalAutoencoder(nn.Module):
 
 
 def train_epoch(vae, dataloader, loss_function, optimizer):
-    # Set train mode for both the encoder and the decoder
     vae.train()
     train_loss = 0.0
-    # Iterate the dataloader (we do not need the label values, this is unsupervised learning)
     for x, _ in dataloader:
         x_hat = vae(x)
-        # Evaluate loss
         loss = loss_function(x_hat, x)
-
-        # Backward pass
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        # Print batch loss
-        # print('\t partial train loss (single batch): %f' % (loss.item()))
         train_loss += loss.item()
 
     return train_loss / len(dataloader.dataset)
@@ -133,14 +118,11 @@ def train_epoch(vae, dataloader, loss_function, optimizer):
 
 # Testing function
 def test_epoch(vae, dataloader, loss_function):
-    # Set evaluation mode for encoder and decoder
     vae.eval()
     val_loss = 0.0
-    with torch.no_grad():  # No need to track the gradients
+    with torch.no_grad():
         for x, _ in dataloader:
-            # Encode data
             encoded_data = vae.encoder(x)
-            # Decode data
             x_hat = vae(x)
             loss = loss_function(x_hat, x)
             val_loss += loss.item()
@@ -155,15 +137,13 @@ def show_image(img):
 
 if __name__ == '__main__':
 
-    # Command line arguments
-    parser = argparse.ArgumentParser(description='ML with PyTorch')
+    parser = argparse.ArgumentParser(description='VAE with PyTorch')
     parser.add_argument('--param', default='inputs/param.json', help='parameter file name')
     parser.add_argument('--output', '-o', default='result_dir', help='path of results')
     parser.add_argument('--verbose', action='store_true', help='verbose mode')
-    parser.add_argument('--number', '-n', default=10, type=int, help='number of output pdf')
+    parser.add_argument('--number', '-n', default=100, type=int, help='number of output pdf')
     args = parser.parse_args()
     Path(f'{args.output}').mkdir(parents=True, exist_ok=True)
-    # Hyperparameters from json file
     with open(args.param) as paramfile:
         params = json.load(paramfile)
     param = params['data']
@@ -199,18 +179,13 @@ if __name__ == '__main__':
         n = args.number
         index = 1
         while n > 0:
-            # sample latent vectors from the normal distribution
             latent = torch.randn(128, 4)
-
-            # reconstruct images from the latent vectors
             img_recon = vae.decoder(latent)
             img_recon = img_recon.cpu()
-
             for i in range(min(n, 128)):
                 img_numpy = img_recon[i].squeeze()
                 plt.cla()
                 plt.imshow(img_numpy, cmap='gray')
                 plt.savefig(Path(args.output) / f"{index}.pdf")
                 index += 1
-
             n -= 128
